@@ -37,7 +37,8 @@ app.use(cookieParser());
 // List of allowed origins
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://shaddyna-updated-server.onrender.com'
+  'https://shaddyna-updated-server.onrender.com',
+  'https://www.shaddyna.com'
 ];
 
 app.use(
