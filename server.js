@@ -27,10 +27,33 @@ app.use(express.json());
 app.use(cookieParser());
 // Enable CORS for all routes
 
+/*app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+  })
+);*/
+
+// List of allowed origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://shaddyna-updated-server.onrender.com'
+];
+
 app.use(
   cors({
-    origin: "https://shaddyna-updated-server.onrender.com",
-    credentials: true,
+    origin: function (origin, callback) {
+      // Allow requests with no origin like server-side or mobile apps
+      if (!origin) return callback(null, true);
+
+      // Check if the origin is in the allowed origins list
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,  // Allow credentials (cookies, headers)
   })
 );
 
