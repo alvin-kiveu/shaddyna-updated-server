@@ -167,9 +167,9 @@ exports.createPayment = async (req, res) => {
       Timestamp: getTimestamp(),
       TransactionType: "CustomerPayBillOnline",
       Amount: totalAmount,
-      PartyA: 254758527054,
+      PartyA: 254702714736,
       PartyB: process.env.MPESA_SHORTCODE,
-      PhoneNumber: 254758527054,
+      PhoneNumber: 254702714736,
       CallBackURL: `https://www.shaddyna.com/api/mpesa-callback`,
       AccountReference: `Order-${new Date().getTime()}`,
       TransactionDesc: "Payment for your order"
