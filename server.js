@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser')
 require('dotenv').config()
 
 app.use(cors({
-  origin: ['www.shaddyna.com', 'https://shaddyna-dashboard.onrender.com'],
+  origin: ['https://www.shaddyna.com', 'https://shaddyna-dashboard.onrender.com'],
   credentials: true
 }))
 app.use(bodyParser.json())
