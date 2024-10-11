@@ -3,7 +3,7 @@
 const axios = require('axios'); // Ensure axios is imported
 require("dotenv").config();
 const moment = require("moment");
-const Payment = require("../models/payment");
+const Payment = require("../models/mpesaModel");
 const fs = require("fs");
 
 class mpesaController {

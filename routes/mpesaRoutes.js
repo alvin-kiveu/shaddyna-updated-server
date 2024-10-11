@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const mpesaController = require("../controller/mpesa");
+const mpesaController = require("../controller/mpesaController");
 
 router.get("/accesstoken", mpesaController.getAccessTokenGenerate);
 router.post("/stkpush", mpesaController.stkPush);
