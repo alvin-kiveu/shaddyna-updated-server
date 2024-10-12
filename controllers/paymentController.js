@@ -9,7 +9,6 @@ const { mongo: { ObjectId } } = require('mongoose')
 const stripe = require("stripe")(
     "sk_test_51N8amPIt63Wcx3eVr72l77kfPTDgInVEaTT9d4G1JgngM0YEgAIwocli1hC0sKidMuzPiUNimOpqxXtIKeFkhnQo00EQgFUaDA"
 );
-
 class paymentController {
     create_stripe_connect_account = async (req, res) => {
         const { id } = req

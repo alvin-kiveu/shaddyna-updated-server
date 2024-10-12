@@ -14,6 +14,7 @@ class categoryController {
                 let { image } = files
                 name = name[0].trim()
                 const slug = name.split(' ').join('-')
+                console.log('data: ' + slug)
                 cloudinary.config({
                     cloud_name: process.env.cloud_name,
                     api_key: process.env.api_key,
@@ -22,6 +23,7 @@ class categoryController {
                 })
                 try {
                     const result = await cloudinary.uploader.upload(image[0].filepath, { folder: 'category' })
+                    
                     if (result) {
                         const category = await categoryModel.create({
                             name,
@@ -33,6 +35,7 @@ class categoryController {
                         responseReturn(res, 404, { error: 'Image upload failed' })
                     }
                 } catch (error) {
+                    console.error('Cloudinary upload or database error:', error);
                     responseReturn(res, 500, { error: 'Internal server error' })
                 }
 

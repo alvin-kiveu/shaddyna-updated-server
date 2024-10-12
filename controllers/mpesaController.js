@@ -108,7 +108,7 @@ class mpesaController {
       console.log("CheckoutRequestID : " + CheckoutRequestID);
       //SAVE TO DATABASE
       const newPayment = new Payment({
-        'user': '60b3b3b3b3b3b3b3b3b3b3b3',
+       'user': '60b3b3b3b3b3b3b3b3b3b3b3',
         phone,
         amount,
         accountReference,
