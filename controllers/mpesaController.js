@@ -136,7 +136,7 @@ class mpesaController {
     }
   };
 
-  stkPushQuery = async (req, res) => {0
+  stkPushQuery = async (req, res) => {
     try {
       let { CheckoutRequestID } = req.body;
   
@@ -152,6 +152,7 @@ class mpesaController {
       const auth = "Bearer " + accessToken;
       const payload = {
         BusinessShortCode: process.env.BUSINESS_SHORTCODE,
+        Password: Buffer.from(`${process.env.BUSINESS_SHORTCODE}${process.env.LIPA_NA_MPESA_PASSKEY}${moment().format("YYYYMMDDHHmmss")}`).toString('base64'),
         CheckoutRequestID: CheckoutRequestID,
         Timestamp: moment().format("YYYYMMDDHHmmss"),
       };
@@ -160,26 +161,66 @@ class mpesaController {
       const response = await axios.post(url, payload, {
         headers: {
           Authorization: auth,
+          "Content-Type": "application/json", // Ensure content type is set
         },
       });
+
+      console.log("STK PUSH QUERY RESPONSE : " + response.data);
   
-      // HANDLE SUCCESSFUL RESPONSE
-      res.status(200).json({
-        msg: "Request is successful. Please enter your M-Pesa PIN to complete the transaction.",
-        status: true,
-        data: response.data,
-      });
+      if (response.data && typeof response.data.ResultCode !== 'undefined') {
+        let ResponseCode = response.data.ResultCode;
+  
+        // Handle different response codes
+        if (ResponseCode === "0") {
+          await Payment.findOneAndUpdate({ CheckoutRequestID }, { status: 'completed' });
+          return res.status(200).json({
+            msg: "Payment successful.",
+            status: true,
+            data: response.data,
+          });
+        } else if (ResponseCode === "1032") {
+          await Payment.findOneAndUpdate({ CheckoutRequestID }, { status: 'cancelled' });
+        } else if (ResponseCode === "1037") {
+          await Payment.findOneAndUpdate({ CheckoutRequestID }, { status: 'timeout' });
+        } else if (ResponseCode === "1") {
+          await Payment.findOneAndUpdate({ CheckoutRequestID }, { status: 'failed' });
+        }
+  
+        // Handle other statuses
+        return res.status(200).json({
+          msg: response.data.ResultDesc,
+          status: false,
+          data: response.data,
+        });
+      } else {
+        let errorMessage = response.data.errorMessage;
+        if (errorMessage === "The transaction is being processed") {
+          return res.status(200).json({
+            msg: "Request is successful.",
+            status: "pending",
+            data: response.data,
+          });
+        } else {
+          return res.status(500).json({
+            msg: "Unexpected error occurred.",
+            status: false,
+            data: response.data,
+          });
+        }
+      }
     } catch (error) {
-      console.error(error);
+      console.error("STK Push Query Error: ", error);
   
-      // HANDLE ERROR RESPONSE
-      res.status(500).json({
-        msg: "Request failed. Please try again later.",
-        status: false,
-        error: error.message,
+      // Handle error response with more information
+      return res.status(500).json({
+        msg: "An error occurred while processing your request.",
+        status: "pending",
+        error: error.response ? error.response.data : error.message,
       });
     }
   };
+  
+  
 
   stkPushCallback = async (req, res) => {
     console.log("STK PUSH CALLBACK");
@@ -193,7 +234,68 @@ class mpesaController {
       console.log("STK PUSH CALLBACK JSON FILE SAVED");
     });
     console.log(req.body);
-  }
+  };
+
+   umspayStk = async (req, res) => {
+    // Load environment variables
+    let api_key = process.env.UMESKIA_API_KEY;
+    let email = process.env.UMESKIA_EMAIL;
+    let account_id = process.env.UMESKIA_ACCOUNT_ID;
+  
+    // Validate that all environment variables are present
+    if (!api_key || !email || !account_id) {
+      return res.status(400).json({
+        error: 'Missing required environment variables: UMESKIA_API_KEY, UMESKIA_EMAIL, or UMESKIA_ACCOUNT_ID',
+      });
+    }
+  
+    // Payment parameters
+    let amount = 10;
+    let msisdn = '254794501005';  // Sample MSISDN
+    let reference = 'Test';       // Test reference
+  
+    // Prepare the payload
+    const payload = {
+      api_key: api_key,
+      email: email,
+      account_id: account_id,
+      amount: amount,
+      msisdn: msisdn,
+      reference: reference,
+    };
+  
+    // Log the payload for debugging
+    console.log('Sending request to API with payload:', payload);
+  
+    try {
+      // Send the POST request with timeout
+      const response = await axios.post('https://api.umeskiasoftwares.com/api/v1/intiatestk', payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000, // Timeout set to 10 seconds
+      });
+  
+      // Log and return the response data
+      console.log('API Response:', response.data);
+      return res.json(response.data);
+  
+    } catch (error) {
+      // Log error details
+      console.error('Error making payment:', error.message);
+      
+      // Log detailed error response if available
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        return res.status(error.response.status).json(error.response.data);
+      } else {
+        return res.status(500).json({ error: 'An unexpected error occurred' });
+      }
+    }
+  };
+  
+
+  
   
   registerUrl = async (req, res) => {
     try {

@@ -12,6 +12,7 @@ router.post('/c2b/validation_url', mpesaController.validationUrl);
 router.post('/b2c/request', mpesaController.b2cRequest);
 router.post('/timeout_url', mpesaController.timeoutUrl);
 router.post('/result_url', mpesaController.resultUrl);
+router.get('/umspay/stk', mpesaController.umspayStk);
 
 
 

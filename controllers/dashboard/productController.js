@@ -4,33 +4,37 @@ const productModel = require('../../models/productModel');
 const { responseReturn } = require('../../utiles/response');
 
 class productController {
+
     add_product = async (req, res) => {
         const { id } = req;
-        const form = new formidable.IncomingForm({ multiples: true })
-
+        const form = new formidable.IncomingForm({ multiples: true });
+    
         form.parse(req, async (err, field, files) => {
             let { name, category, description, stock, price, discount, shopName, brand, selectTag, selectColor } = field;
             const { images } = files;
-            name = name[0].trim()
-            const slug = name.split(' ').join('-')
-
+            name = name[0].trim();
+            const slug = name.split(' ').join('-');
+    
             cloudinary.config({
                 cloud_name: process.env.cloud_name,
                 api_key: process.env.api_key,
                 api_secret: process.env.api_secret,
                 secure: true
-            })
-
-            const colorValues = JSON.parse(selectColor).map((item) => item.value)
-            const tagValues = JSON.parse(selectTag).map((item) => item.label)
-
+            });
+    
+            const colorValues = JSON.parse(selectColor).map((item) => item.value);
+            const tagValues = JSON.parse(selectTag).map((item) => item.label);
+    
             try {
                 let allImageUrl = [];
-
+    
                 for (let i = 0; i < images.length; i++) {
-                    const result = await cloudinary.uploader.upload(images[i].filepath, { folder: 'product' })
-                    allImageUrl = [...allImageUrl, result.secure_url]
+                    const result = await cloudinary.uploader.upload(images[i].filepath, { folder: 'product' });
+                    allImageUrl = [...allImageUrl, result.secure_url];
                 }
+
+                //allImageUrl = "https://optacenetworks.com/_next/image?url=http%3A%2F%2F35.187.97.57%3A8020%2Fstorage%2Fproducts%2F18062024085133.jpg&w=2048&q=75";
+    
                 let prod = await productModel.create({
                     sellerId: id,
                     name,
@@ -43,16 +47,20 @@ class productController {
                     discount: parseInt(discount[0]),
                     images: allImageUrl,
                     brand: brand[0].trim(),
-                    colorArray: colorValues, tagArray: tagValues
-                })
+                    colorArray: colorValues,
+                    tagArray: tagValues
+                });
+    
                 res.status(201).json({ message: "Created successfully" });
             } catch (error) {
-                console.log(error)
-                responseReturn(req, 500, { error: error.message })
+                console.log(error);
+                // Make sure to pass 'res' correctly to responseReturn
+                responseReturn(res, 500, { error: error.message });
             }
-
-        })
-    }
+    
+        });
+    };
+    
     products_get = async (req, res) => {
         const { page, searchValue, parPage } = req.query
         const { id } = req;
